@@ -7,8 +7,15 @@ const Tour = require('./../Models/tourModel');
 exports.getAllTours = async (req, res) => {
     try {
 
+        const queryObj = { ...req.query };
+        // Excluding these fields as all the fields come into the query params while using
+        const excludedFields = ['page', 'sort', 'limit', 'fields']
+        excludedFields.forEach(el => delete queryObj[el])
 
-        const tours = await Tour.find()
+        // The find method is a query method that returns the document while awaiting.. so we are collectively awaiting all the queries below
+        const query = Tour.find(queryObj)
+
+        const tours = await query;
 
         res.status(200).json({
             status: "success",
@@ -84,9 +91,7 @@ exports.updateTour = async (req, res) => {
             stauts: "fail",
             message: err
         })
-
     }
-
 }
 
 exports.deleteTour = async (req, res) => {

@@ -1,64 +1,70 @@
-const fs = require('fs');
+const fs = require('fs')
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const Tour = require('./../../models/tourModel');
-const Review = require('./../../models/reviewModel');
-const User = require('./../../models/userModel');
+const Tour = require('./../../Models/tourModel');
 
-dotenv.config({ path: './config.env' });
+// For knowing about environment variables
+// for knowing the directory of our environment variables
+dotenv.config({ path: `${__dirname}/../../config.env` })
 
-const DB = process.env.DATABASE.replace(
-  '<PASSWORD>',
-  process.env.DATABASE_PASSWORD
-);
 
-mongoose
-  .connect(DB, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-  })
-  .then(() => {
-    // READ JSON FILE
-    const tours = JSON.parse(
-      fs.readFileSync(`${__dirname}/tours.json`, 'utf-8')
-    );
-    const users = JSON.parse(
-      fs.readFileSync(`${__dirname}/users.json`, 'utf-8')
-    );
-    const reviews = JSON.parse(
-      fs.readFileSync(`${__dirname}/reviews.json`, 'utf-8')
-    );
+// Making a db connection string by replacing password template with the real
+const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD.replace('@', '%40'));
 
-    // IMPORT DATA INTO DB
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8'));
+
+const connectDb = async () => {
+  try {
+    const connection = await mongoose.connect(DB, {
+      autoIndex: true
+    })
+    console.log("Database Connection Successful!");
+
     const importData = async () => {
       try {
         await Tour.create(tours);
-        await User.create(users, { validateBeforeSave: false });
-        await Review.create(reviews);
-        console.log('Data successfully loaded!');
-      } catch (err) {
+        console.log("Data successfully loaded");
+      }
+      catch (err) {
         console.log(err);
       }
-      process.exit();
-    };
-
-    // DELETE ALL DATA FROM DB
-    const deleteData = async () => {
-      try {
-        await Tour.deleteMany();
-        await User.deleteMany();
-        await Review.deleteMany();
-        console.log('Data successfully deleted!');
-      } catch (err) {
-        console.log(err);
-      }
-      process.exit();
-    };
-
-    if (process.argv[2] === '--import') {
-      importData();
-    } else if (process.argv[2] === '--delete') {
-      deleteData();
     }
-  });
+
+    importData()
+
+    // const deleteData = async () => {
+    //   try {
+    //     await Tour.deleteMany();
+    //     console.log("Data successfully deleted");
+    //   }
+    //   catch (err) {
+    //     console.log(err);
+    //   }
+    // }
+
+    // if (process.argv[2] === '--import') {
+    //   importData();
+    //   // Aggressive way of exiting the application
+    //   process.exit();
+    // }
+    // if (process.argv[2] === '--delete') {
+    //   deleteData();
+    //   process.exit();
+    // }
+
+
+  }
+
+  catch (error) {
+    console.log("Something went wrong while connecting to the database!", err);
+  }
+}
+
+
+connectDb()
+
+
+
+
+
+
