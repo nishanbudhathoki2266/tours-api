@@ -12,8 +12,12 @@ exports.getAllTours = async (req, res) => {
         const excludedFields = ['page', 'sort', 'limit', 'fields']
         excludedFields.forEach(el => delete queryObj[el])
 
+        // Advanced filtering
+        let queryStr = JSON.stringify(queryObj);
+        queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
+
         // The find method is a query method that returns the document while awaiting.. so we are collectively awaiting all the queries below
-        const query = Tour.find(queryObj)
+        const query = Tour.find(JSON.parse(queryStr))
 
         const tours = await query;
 
