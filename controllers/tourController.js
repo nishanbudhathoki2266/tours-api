@@ -12,51 +12,68 @@ exports.aliasTopTours = async (req, res, next) => {
     next();
 }
 
-exports.getAllTours = async (req, res) => {
-    try {
+class APIFeatures {
+    constructor(query, queryStr) {
+        this.query = query;
+        this.queryStr = queryStr;
+    }
 
-        const queryObj = { ...req.query };
+    filter() {
+        const queryObj = { ...this.queryStr };
         // Excluding these fields as all the fields come into the query params while using
         const excludedFields = ['page', 'sort', 'limit', 'fields']
         excludedFields.forEach(el => delete queryObj[el])
 
         // Advanced filtering
-        let queryStr = JSON.stringify(queryObj);
-        queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
+        let queryString = JSON.stringify(queryObj);
+        queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
 
-        // The find method is a query method that returns the document while awaiting.. so we are collectively awaiting all the queries below
-        let query = Tour.find(JSON.parse(queryStr))
+        this.query.find(JSON.parse(queryString))
 
-        if (req.query.sort) {
-            const sortBy = req.query.sort.split(',').join(' ')
-            query = query.sort(sortBy)
+        return this;
+    }
+
+    sort() {
+        if (this.queryStr.sort) {
+            const sortBy = this.queryStr.sort.split(',').join(' ')
+            this.query = this.query.sort(sortBy)
         }
         else {
-            query = query.sort('-createdAt')
+            this.query = this.query.sort('-createdAt')
         }
+        return this;
+    }
 
+    limitFields() {
         // Field limiting 
-        if (req.query.fields) {
-            const fields = req.query.fields.split(',').join(' ');
-            query = query.select(fields)
+        if (this.queryStr.fields) {
+            const fields = this.queryStr.fields.split(',').join(' ');
+            this.query = this.query.select(fields)
         }
         else {
-            query = query.select('-__v');
+            this.query = this.query.select('-__v');
         }
+        return this;
+    }
 
+    pagniate() {
         // Pagination
-        const page = +req.query.page || 1;
-        const limit = +req.query.limit || 100;
+        const page = +this.queryStr.page || 1;
+        const limit = +this.queryStr.limit || 100;
         const skip = (page - 1) * limit;
 
-        query = query.skip(skip).limit(limit);
+        this.query = this.query.skip(skip).limit(limit);
 
-        if (req.query.page) {
-            const numTours = await Tour.countDocuments();
-            if (skip > numTours) throw new Error('This page does not exist!')
-        }
+        return this;
+    }
 
-        const tours = await query;
+}
+
+exports.getAllTours = async (req, res) => {
+    try {
+        const features = new APIFeatures(Tour.find(), req.query).filter().sort().limitFields().pagniate();
+
+        const tours = await features.query;
 
         res.status(200).json({
             status: "success",
