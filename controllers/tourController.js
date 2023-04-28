@@ -17,7 +17,16 @@ exports.getAllTours = async (req, res) => {
         queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
 
         // The find method is a query method that returns the document while awaiting.. so we are collectively awaiting all the queries below
-        const query = Tour.find(JSON.parse(queryStr))
+        let query = Tour.find(JSON.parse(queryStr))
+
+        if (req.query.sort) {
+            const sortBy = req.query.sort.split(',').join(' ')
+            query = query.sort(sortBy)
+        }
+        else {
+            query = query.sort('-createdAt')
+        }
+
 
         const tours = await query;
 
