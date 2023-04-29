@@ -12,12 +12,10 @@ exports.aliasTopTours = catchAsync(async (req, res, next) => {
   req.query.fields = "name,price,ratingsAverage,summary,difficulty";
   next();
 });
+
+
 exports.getAllTours = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+  const features = new APIFeatures(Tour.find(), req.query).filter().limitFields().pagniate().sort();
   const tours = await features.query;
 
   // SEND RESPONSE
@@ -26,9 +24,10 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
     results: tours.length,
     data: {
       tours,
-    },
-  });
+    }
+  })
 });
+
 
 exports.getTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findById(req.params.id);
