@@ -12,6 +12,31 @@ const signToken = id => {
     });
 }
 
+const createAndSendToken = (user, statusCode, res) => {
+    const token = signToken(user._id);
+
+    const cookieOptions = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+        httpOnly: true
+    }
+
+    if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+    // cookie
+    res.cookie('jwt', token, cookieOptions)
+
+    // remove password from the output 
+    user.password = undefined;
+
+    res.status(statusCode).json({
+        status: 'success',
+        token,
+        data: {
+            user
+        }
+    })
+}
+
 
 exports.signup = catchAsync(async (req, res, next) => {
     // Only taking the things that are just required to sign up the user. things like roles and all are neglected as anyone can be an admin while signing up
@@ -25,13 +50,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
     const token = signToken(newUser._id);
 
-    res.status(201).json({
-        status: 'success',
-        token,
-        data: {
-            user: newUser
-        }
-    })
+    createSendToken(newUser, 201, res);
 })
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -51,11 +70,7 @@ exports.login = catchAsync(async (req, res, next) => {
     }
 
     // If everything ok, send token to client
-    const token = signToken(user._id);
-    res.status(200).json({
-        status: 'success',
-        token
-    })
+    createSendToken(user, 200, res);
 })
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -161,12 +176,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 
     // Log the user in
-    const token = signToken(user._id);
-
-    res.status(200).json({
-        status: 'success',
-        token
-    })
+    createSendToken(user, 200, res);
 })
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -185,11 +195,6 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     await user.save();
 
     // Log user in, send JWT
-    const token = signToken(user._id);
-
-    res.status(200).json({
-        status: 'success',
-        token
-    })
+    createSendToken(user, 200, res);
 })
 
