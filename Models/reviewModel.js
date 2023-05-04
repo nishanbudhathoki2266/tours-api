@@ -8,7 +8,7 @@ const reviewSchema = mongoose.Schema({
     rating: {
         type: Number,
         min: 1,
-        max: 5
+        max: 5,
     },
     createdAt: {
         type: Date,
