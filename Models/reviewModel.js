@@ -31,6 +31,9 @@ const reviewSchema = mongoose.Schema({
         toObject: { virtuals: true },
     });
 
+// Preventing duplicate reviews
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true })
+
 reviewSchema.pre(/^find/, function (next) {
     this.populate({
         path: 'tour',
