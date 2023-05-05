@@ -26,6 +26,20 @@ exports.getAllUsers = catchAsync(async (req, res) => {
     });
 })
 
+exports.getMe = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+
+    if (!user) return (next(new AppError("You might not be logged in!", 404)))
+
+    // Send response 
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
+    })
+})
+
 exports.updateMe = catchAsync(async (req, res, next) => {
     // Create error if use posts password data
     if (req.body.password || req.body.passwordConfirm) {
@@ -53,29 +67,57 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     })
 })
 
-exports.getUser = (req, res) => {
-    res.status(500).json({
-        status: "error",
-        msg: 'This route is not yet defined!'
-    })
-}
+exports.getUser = catchAsync(async (req, res) => {
+    const user = await User.findById(req.params.id);
 
-exports.createUser = (req, res) => {
-    res.status(500).json({
-        status: "error",
-        msg: 'This route is not yet defined!'
-    })
-}
+    if (!user) return (next(new AppError("Can't find user associated with that ID!", 404)))
 
-exports.updateUser = (req, res) => {
-    res.status(500).json({
-        status: "error",
-        msg: 'This route is not yet defined!'
+    // Send response 
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
     })
-}
-exports.deleteUser = (req, res) => {
-    res.status(500).json({
-        status: "error",
-        msg: 'This route is not yet defined!'
+})
+
+exports.createUser = catchAsync(async (req, res) => {
+    const newUser = await User.create(req.body);
+
+    // Response
+    res.status(201).json({
+        status: 'success',
+        data: {
+            user: newUser
+        }
     })
-}
+})
+
+exports.updateUser = catchAsync(async (req, res) => {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    });
+
+    if (!user) return new AppError("No user found associated with that ID!", 404)
+
+    // Send response
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
+    })
+})
+
+
+exports.deleteUser = catchAsync(async (req, res, next) => {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    if (!user) return next(new AppError("No user found associated with that id!", 404));
+
+    res.status(204).json({
+        status: 'success',
+        data: null
+    })
+})
