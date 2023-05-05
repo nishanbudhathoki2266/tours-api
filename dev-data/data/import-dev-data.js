@@ -2,6 +2,8 @@ const fs = require('fs')
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Tour = require('./../../Models/tourModel');
+const User = require('./../../Models/userModel');
+const Review = require('./../../Models/reviewModel');
 
 // For knowing about environment variables
 // for knowing the directory of our environment variables
@@ -12,6 +14,8 @@ dotenv.config({ path: `${__dirname}/../../config.env` })
 const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD.replace('@', '%40'));
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
+const users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`, 'utf-8'));
+const reveiws = JSON.parse(fs.readFileSync(`${__dirname}/reviews.json`, 'utf-8'));
 
 const connectDb = async () => {
   try {
@@ -22,7 +26,7 @@ const connectDb = async () => {
 
     const importData = async () => {
       try {
-        await Tour.create(tours);
+        await Review.create(reveiws, { validateBeforeSave: false });
         console.log("Data successfully loaded");
       }
       catch (err) {
@@ -34,7 +38,7 @@ const connectDb = async () => {
 
     const deleteData = async () => {
       try {
-        await Tour.deleteMany();
+        await Review.deleteMany();
         console.log("Data successfully deleted");
       }
       catch (err) {
