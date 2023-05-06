@@ -8,6 +8,7 @@ const router = express.Router();
 // Param middleware -> middleware that runs only when a param is present 
 
 // router.route('/:tourId/reviews').post(authController.protect, authController.restrictTo('user'), reviewController.createReview)
+
 router.get('/tours-within/:distance/center/:latlng/unit/:unit', tourController.getToursWithin)
 router.get('/distances/:latlng/unit/:unit', tourController.getDistances);
 
@@ -19,7 +20,7 @@ router.route('/monthly-plan/:year').get(authController.protect, authController.r
 
 router.route('/').get(tourController.getAllTours).post(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.createTour);
 
-router.route('/:id').get(tourController.getTour).patch(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.updateTour).delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.deleteTour);
+router.route('/:id').get(tourController.getTour).patch(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.uploadTourImages, tourController.resizeTourImages, tourController.updateTour).delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.deleteTour);
 
 
 

@@ -34,13 +34,13 @@ const upload = multer({
 
 exports.uploadUserPhoto = upload.single('photo');
 
-exports.resizeUserPhoto = (req, res, next) => {
+exports.resizeUserPhoto = async (req, res, next) => {
     if (!req.file) return next();
 
     // we dont have filename as we are stored the img as a buffer in memory recently
     req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`
 
-    sharp(req.file.buffer).resize(500, 500).toFormat('jpeg').jpeg({ quality: 90 }).toFile(`public/img/${req.file.filename}`);
+    await sharp(req.file.buffer).resize(500, 500).toFormat('jpeg').jpeg({ quality: 90 }).toFile(`public/img/users/${req.file.filename}`);
 
     next();
 }
