@@ -68,7 +68,7 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
     }
 }
 
-reviewSchema.post('save', function (next) {
+reviewSchema.post('save', function () {
     // this points to the current review where as this.constructor refers to the model
     this.constructor.calcAverageRatings(this.tour);
     // next();
@@ -81,9 +81,8 @@ reviewSchema.pre(/^findOneAnd/, async function (next) {
 })
 
 // with this.r we are transfering data from pre to post
-reviewSchema.post(/^findOneAnd/, async function (next) {
+reviewSchema.post(/^findOneAnd/, async function () {
     await this.r.constructor.calcAverageRatings(this.r.tour);
-    next();
 })
 
 const Review = mongoose.model('Review', reviewSchema);
